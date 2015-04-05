@@ -1,6 +1,9 @@
 # sucre
 An easy to use library made for 2D drawing using OpenGL 3.2
 
+## Documentation
+https://godoc.org/github.com/atrika/sucre
+
 ## Usage with glfw
 
 ```go
