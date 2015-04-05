@@ -61,7 +61,7 @@ func uploadRGBA(rgba *image.RGBA) uint32 {
    gl.BindTexture(gl.TEXTURE_2D, tex)
    gl.TexImage2D(gl.TEXTURE_2D,             // target
                  0,                         // mipmap level
-                 gl.RGBA,                   // number of color components
+                 gl.RGB,                    // internal format
                  int32(rgba.Rect.Size().X), // width
 		           int32(rgba.Rect.Size().Y), // height
 		           0,                         // border

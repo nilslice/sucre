@@ -46,10 +46,6 @@ func (this *Context) Initialize(textureLocation string) error {
       return err
    }
    
-   // PNG Transparency
-   gl.Enable(gl.BLEND)
-   gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-   
    // Depth Test
    gl.Enable(gl.DEPTH_TEST)
    gl.DepthFunc(gl.LESS) 
