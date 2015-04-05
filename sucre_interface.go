@@ -27,9 +27,6 @@ type SquareData struct {
 type squareList []SquareData
 
 type Context struct {
-
-   // Camera info
-   cameraX, cameraY float32
    
    // Textures
    texturesByName map[string]uint32
@@ -92,11 +89,8 @@ func (this *Context) Initialize(textureLocation string) error {
 // ----------------------------------------------------------------
 
 // Sets the position of the camera (default is [0;0])
-func (this *Context) SetCameraPosition(posX, posY float32) {
-   this.cameraX = posX
-   this.cameraY = posY
-   
-   gl.Uniform2f(this.cameraUni, this.cameraX, this.cameraY)
+func (this *Context) SetCameraPosition(posX, posY float32) {   
+   gl.Uniform2f(this.cameraUni, posX, posY)
 }
 
 // Sets the size of the camera (default 1.0 for w and h)

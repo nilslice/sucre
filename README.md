@@ -35,23 +35,23 @@ func main() {
    
    window.MakeContextCurrent()
 
-   var context sucre.Context   
+   var context sucre.Context
    context.Initialize("/home/username/Images/textures")
    context.SetCameraPosition(0.0, 0.0)
    context.SetCameraAngle(0.0)
    context.SetCameraSize(20.0, 20.0)
    context.SetClearColor(sucre.Color{0.4, 0.1, 0.1})
    
-   tex1, _ := context.GetTextureId("3.png")
+   tex1, _ := context.GetTextureId("texture_1.png")
    
    for !window.ShouldClose() {
       context.ClearScene()
       
-      data := sucre.SquareData{PosX: 8.0, 
-                               PosY: 8.0,
+      data := sucre.SquareData{PosX:  8.0, 
+                               PosY:  8.0,
                                Depth: 0.5,
                                Angle: 0.0,
-                               Size: 3.0}
+                               Size:  3.0}
                                
       context.AddSquare(tex1, data)
       
