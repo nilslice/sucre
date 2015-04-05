@@ -1,7 +1,7 @@
 # sucre
-An easy to use library made for 2D drawing using OpenGL
+An easy to use library made for 2D drawing using OpenGL 3.2
 
-## Usage
+## Usage with glfw
 
 ```go
 package main
