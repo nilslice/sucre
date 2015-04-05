@@ -55,10 +55,7 @@ func (this *Context) initVAO() {
    this.zoomUni      = gl.GetUniformLocation(this.theProgram, gl.Str("zoom_mat" + "\x00"))
    this.rotUni       = gl.GetUniformLocation(this.theProgram, gl.Str("rot_mat" + "\x00"))
    this.cameraUni    = gl.GetUniformLocation(this.theProgram, gl.Str("camera_pos" + "\x00"))
-   
-   // Fragment Shader Uniforms
-   this.textureUni   = gl.GetUniformLocation(this.theProgram, gl.Str("theTexture" + "\x00"))
-   
+
    // Clean up
    gl.BindBuffer(gl.ARRAY_BUFFER, 0)
    gl.BindVertexArray(0)
@@ -97,7 +94,7 @@ func uploadSquareMesh() uint32 {
 func createProgram() uint32 {
    theProgram := gl.CreateProgram()
    
-   vertexSrc := `#version 330
+   vertexSrc := `#version 150
    
                  uniform mat4 zoom_mat;
                  uniform mat4 rot_mat;
@@ -133,7 +130,7 @@ func createProgram() uint32 {
                      gl_Position = rot_mat * zoom_mat * vec4(temp, depth, 1.0);
                  }`
 
-   fragSrc := `#version 330
+   fragSrc := `#version 150
    
                uniform sampler2D theTexture;
 

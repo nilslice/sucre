@@ -25,10 +25,9 @@ func (this *Context) loadTextures(textureLocation string) {
             return nil
          }
          
-         index := len(this.texturesByName)
-         uploadRGBA(rgba, uint32(index + gl.TEXTURE0))
+         tex := uploadRGBA(rgba)
          
-         this.texturesByName[filepath.Base(path)] = uint32(index)
+         this.texturesByName[filepath.Base(path)] = tex
       }
       return nil
    }
@@ -56,10 +55,9 @@ func getRGBA(imgPath string) (*image.RGBA, error) {
 }
 
 // Upload an RGBA image to the GPU as a texture
-func uploadRGBA(rgba *image.RGBA, textureUnit uint32) uint32 {
+func uploadRGBA(rgba *image.RGBA) uint32 {
    var tex uint32
    gl.GenTextures(1, &tex)
-   gl.ActiveTexture(textureUnit)
    gl.BindTexture(gl.TEXTURE_2D, tex)
    gl.TexImage2D(gl.TEXTURE_2D,             // target
                  0,                         // mipmap level
@@ -71,12 +69,13 @@ func uploadRGBA(rgba *image.RGBA, textureUnit uint32) uint32 {
 		           gl.UNSIGNED_BYTE,          // data type of pixel
 		           gl.Ptr(rgba.Pix))          // raw data
 		           
-    gl.GenerateMipmap(gl.TEXTURE_2D);
-    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+   gl.GenerateMipmap(gl.TEXTURE_2D);
+   gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+   gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_LINEAR);
    
+   gl.BindTexture(gl.TEXTURE_2D, 0)
    return tex
 }
 

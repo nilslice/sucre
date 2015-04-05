@@ -36,7 +36,6 @@ type Context struct {
    
    // Shader stuff
    instanceBuffer uint32
-   textureUni int32
    zoomUni, rotUni, cameraUni int32
    theProgram, theVAO uint32
 }
@@ -161,8 +160,8 @@ func (this *Context) ClearScene() {
 
 // Draws the squares
 func (this *Context) Draw() {
-   for texture, squares := range this.squaresByTexture {   
-      gl.Uniform1i(this.textureUni, int32(texture))   
+   for texture, squares := range this.squaresByTexture {
+      gl.BindTexture(gl.TEXTURE_2D, texture)
    
       count := int32(len(squares))
       
