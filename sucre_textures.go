@@ -45,11 +45,8 @@ func (this *Context) loadTextures(textureLocation string) {
    }
    size := int32(rgbas[0].Rect.Size().X)
    
-   // We build mipmaps up to 32x32
-   var mmCount = int32(math.Log2(float64(size)) - 4);
-   if mmCount <= 0 {
-      mmCount = 1
-   }
+   // We build mipmaps down to 1x1
+   var mmCount = int32(math.Log2(float64(size)) + 1);
       
    var theTexture uint32
    gl.GenTextures(1, &theTexture)
