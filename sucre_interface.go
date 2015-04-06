@@ -150,6 +150,9 @@ func (this *Context) ClearScene() {
 // Draws the squares
 func (this *Context) Draw() {
    count := int32(len(this.squares))
+   if count == 0 {
+      return
+   }
 
    // Upload squares and draw call
    gl.BufferData(gl.ARRAY_BUFFER, int(count * 6 * 4), gl.Ptr(this.squares), gl.DYNAMIC_DRAW)
