@@ -4,6 +4,7 @@ package sucre
 
 import "math"
 import "github.com/go-gl/gl/v3.2-core/gl"
+import "sort"
 
 // ----------------------------------------------------------------
 // ------------------------ Data Structures -----------------------
@@ -29,6 +30,7 @@ type Context struct {
    
    // Textures
    texturesByName map[string]uint32
+   transparencyEnabled bool
    
    // Instance stuff
    squares []SquareData
@@ -40,15 +42,27 @@ type Context struct {
 }
 
 // Initializes OpenGL and loads the textures from disk
-func (this *Context) Initialize(textureLocation string) error {
+func (this *Context) Initialize(textureLocation string, transparencyEnabled bool) error {
    if err := gl.Init(); err != nil {
       return err
    }
    
+   this.transparencyEnabled = transparencyEnabled
+   
    // Depth Test
    gl.Enable(gl.DEPTH_TEST)
-   gl.DepthFunc(gl.LESS) 
-   gl.ClearDepth(1.0)   
+   if transparencyEnabled {   
+      gl.DepthFunc(gl.LEQUAL)
+   } else {       
+      gl.DepthFunc(gl.LESS)
+   }
+   gl.ClearDepth(1.0)
+   
+   // Blending
+   if transparencyEnabled {
+      gl.Enable(gl.BLEND)
+      gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+   }
    
    // Backface Culling
    gl.Enable(gl.CULL_FACE)
@@ -133,6 +147,25 @@ func (this *Context) AddSquare(data SquareData) {
 }
 
 // ----------------------------------------------------------------
+// --------------------- Transparency Sorting ---------------------
+// ----------------------------------------------------------------
+
+type byDepth []SquareData
+
+func (a byDepth) Len() int {
+   return len(a)
+}
+
+func (a byDepth) Swap(i, j int) {
+   a[i], a[j] = a[j], a[i]
+}
+
+func (a byDepth) Less(i, j int) bool {
+   return a[i].Depth > a[j].Depth
+}
+
+
+// ----------------------------------------------------------------
 // ------------------------- Scene Control ------------------------
 // ----------------------------------------------------------------
 
@@ -152,6 +185,10 @@ func (this *Context) Draw() {
    count := int32(len(this.squares))
    if count == 0 {
       return
+   }
+   
+   if this.transparencyEnabled {
+      sort.Sort(byDepth(this.squares))
    }
 
    // Upload squares and draw call
