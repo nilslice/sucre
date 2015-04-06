@@ -9,6 +9,7 @@ import "image/draw"
 import "path/filepath"
 import "regexp"
 import _ "image/png"
+import "fmt"
 
 // Load all textures of a directory into the context's dictionnary
 func (this *Context) loadTextures(textureLocation string) {
@@ -16,6 +17,8 @@ func (this *Context) loadTextures(textureLocation string) {
    isImgFile, _ := regexp.Compile("\\.png$")
    
    this.texturesByName = make(map[string]uint32, 10)
+   
+   rgbas := make([]*image.RGBA, 0, 32)
    
    visit := func(path string, meta os.FileInfo, err error) error {
       if err == nil && isImgFile.MatchString(path) {
@@ -25,14 +28,33 @@ func (this *Context) loadTextures(textureLocation string) {
             return nil
          }
          
-         tex := uploadRGBA(rgba)
-         
-         this.texturesByName[filepath.Base(path)] = tex
+         rgbas = append(rgbas, rgba)
       }
       return nil
    }
 
    filepath.Walk(textureLocation, visit)
+   
+   // We assume every texture is of the same size, and squarish
+   texCount := len(rgbas)
+   if texCound == 0 {
+      fmt.Printf("No textures found at %s" + "\n", textureLocation)
+      return
+   }
+   size := rgbas[0].Rect.Size().X
+   
+   // todo mipmap
+   var theTexture uint32
+   gl.GenTextures(1, &theTexture)
+   gl.BindTexture(gl.TEXTURE_2D_ARRAY, theTexture)
+   glTexStorage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, size, size, texCount);
+   for index, rgba := range rgbas {
+      
+   }
+   gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+   gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+   gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+   gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
 // Get an RGBA image from disk
