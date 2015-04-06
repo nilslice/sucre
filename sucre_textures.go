@@ -10,6 +10,7 @@ import "path/filepath"
 import "regexp"
 import _ "image/png"
 import "fmt"
+import "math"
 
 // Load all textures of a directory into the context's dictionnary
 func (this *Context) loadTextures(textureLocation string) {
@@ -44,11 +45,16 @@ func (this *Context) loadTextures(textureLocation string) {
    }
    size := int32(rgbas[0].Rect.Size().X)
    
-   // todo mipmap
+   // We build mipmaps up to 32x32
+   var mmCount = int32(math.Log2(float64(size)) - 4);
+   if mmCount <= 0 {
+      mmCount = 1
+   }
+      
    var theTexture uint32
    gl.GenTextures(1, &theTexture)
    gl.BindTexture(gl.TEXTURE_2D_ARRAY, theTexture)
-   gl.TexStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, size, size, texCount);
+   gl.TexStorage3D(gl.TEXTURE_2D_ARRAY, mmCount, gl.RGBA8, size, size, texCount);
       
    for i, rgba := range rgbas {
       gl.TexSubImage3D(gl.TEXTURE_2D_ARRAY, // target
