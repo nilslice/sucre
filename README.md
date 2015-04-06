@@ -11,6 +11,7 @@ package main
 
 import "github.com/atrika/sucre"
 import "github.com/go-gl/glfw/v3.1/glfw"
+import "github.com/go-gl/gl/v3.2-core/gl"
 import "runtime"
 
 func init() {
@@ -34,6 +35,10 @@ func main() {
    }
    
    window.MakeContextCurrent()
+   
+   if err := gl.Init(); err != nil {
+      panic(err)
+   }
 
    var context sucre.Context
    context.Initialize("/home/username/Images/textures", true)
