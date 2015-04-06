@@ -36,7 +36,7 @@ func main() {
    window.MakeContextCurrent()
 
    var context sucre.Context
-   context.Initialize("/home/username/Images/textures")
+   context.Initialize("/home/username/Images/textures", true)
    context.SetCameraPosition(0.0, 0.0)
    context.SetCameraAngle(0.0)
    context.SetCameraSize(20.0, 20.0)
@@ -51,9 +51,10 @@ func main() {
                                PosY:  8.0,
                                Depth: 0.5,
                                Angle: 0.0,
-                               Size:  3.0}
+                               Size:  3.0,
+			       TextureId: tex1}
                                
-      context.AddSquare(tex1, data)
+      context.AddSquare(data)
       
       context.Draw()
       
