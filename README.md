@@ -27,45 +27,45 @@ func main() {
       panic(err)
    }
    defer glfw.Terminate()
-   
+
    glfw.WindowHint(glfw.ContextVersionMajor, 3)
    glfw.WindowHint(glfw.ContextVersionMinor, 2)
    glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-   
+
    window, err := glfw.CreateWindow(800, 800, "Testing", nil, nil)
    if err != nil {
       panic(err)
    }
-   
+
    window.MakeContextCurrent()
-   
+
    if err := gl.Init(); err != nil {
       panic(err)
    }
 
    var context sucre.Context
-   context.Initialize("/home/username/Images/textures", true)
+   context.Initialize("/home/username/Images/textures")
    context.SetCameraPosition(0.0, 0.0)
    context.SetCameraAngle(0.0)
    context.SetCameraSize(20.0, 20.0)
    context.SetClearColor(sucre.Color{0.4, 0.1, 0.1})
-   
-   tex1, _ := context.GetTextureId("texture_1.png")
-   
+
+   tex1, _ := context.GetTextureId("texture1.png")
+
    for !window.ShouldClose() {
       context.ClearScene()
-      
-      data := sucre.SquareData{PosX:  8.0, 
-                               PosY:  8.0,
-                               Depth: 0.5,
-                               Angle: 0.0,
-                               Size:  3.0,
-			       TextureId: tex1}
-                               
+
+      basic := sucre.BasicSquareData{PosX:  8.0, 
+                                     PosY:  8.0,
+                                     Depth: 0.5,
+                                     Angle: 0.0,
+                                     Size:  3.0}
+      data := sucre.SquareData{basic, tex1}
+
       context.AddSquare(data)
-      
+
       context.Draw()
-      
+
       window.SwapBuffers()
       glfw.PollEvents()
    }
