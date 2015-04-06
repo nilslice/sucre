@@ -8,7 +8,7 @@ go get github.com/atrika/sucre
 https://godoc.org/github.com/atrika/sucre
 
 ## Requirements
-The textures used must be squarish, and they must all have the same sizes.
+The textures used must be squares, and they must all have the same sizes.
 For example :
 ```
    /home/username/Images/textures
