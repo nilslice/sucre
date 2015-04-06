@@ -4,18 +4,9 @@ import "github.com/go-gl/gl/v3.2-core/gl"
 import "sort"
 
 type deeperFirst []innerSquareData
-
-func (a deeperFirst) Len() int {
-   return len(a)
-}
-
-func (a deeperFirst) Swap(i, j int) {
-   a[i], a[j] = a[j], a[i]
-}
-
-func (a deeperFirst) Less(i, j int) bool {
-   return a[i].Depth > a[j].Depth
-}
+func (a deeperFirst) Len() int {return len(a)}
+func (a deeperFirst) Swap(i, j int) {a[i], a[j] = a[j], a[i]}
+func (a deeperFirst) Less(i, j int) bool {return a[i].Depth > a[j].Depth}
 
 func drawSquares(squares []innerSquareData, texId uint32, transparent bool) {
    count := int32(len(squares))
