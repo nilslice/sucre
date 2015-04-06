@@ -15,8 +15,9 @@ For example :
       texture1.png (512x512)
       texture2.png (512x512)
 ```
+## Example using glfw
 
-## Usage with glfw
+![result of example](https://i.imgur.com/PP6uuuj.png)
 
 ```go
 package main
@@ -25,57 +26,82 @@ import "github.com/atrika/sucre"
 import "github.com/go-gl/glfw/v3.1/glfw"
 import "github.com/go-gl/gl/v3.2-core/gl"
 import "runtime"
+import "math"
 
 func init() {
    runtime.LockOSThread()
 }
 
 func main() {
+
    err := glfw.Init()
    if err != nil {
       panic(err)
    }
    defer glfw.Terminate()
-
-   glfw.WindowHint(glfw.ContextVersionMajor, 3)
-   glfw.WindowHint(glfw.ContextVersionMinor, 2)
-   glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-
+   
+   
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 2)
+	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+   
    window, err := glfw.CreateWindow(800, 800, "Testing", nil, nil)
    if err != nil {
       panic(err)
    }
-
+   
    window.MakeContextCurrent()
-
+   
    if err := gl.Init(); err != nil {
       panic(err)
    }
 
-   var context sucre.Context
-   context.Initialize("/home/username/Images/textures")
+   var context sucre.Context   
+   context.Initialize("/home/username/Images/textures/512")
    context.SetCameraPosition(0.0, 0.0)
    context.SetCameraAngle(0.0)
-   context.SetCameraSize(20.0, 20.0)
+   context.SetCameraSize(10.0, 10.0)
    context.SetClearColor(sucre.Color{0.4, 0.1, 0.1})
-
-   tex1, _ := context.GetTextureId("texture1.png")
-
+      
+   tex7, _  := context.GetTextureId("7.png")
+   tex5, _  := context.GetTextureId("5.png")
+   
    for !window.ShouldClose() {
       context.ClearScene()
-
-      basic := sucre.BasicRectData{PosX:   8.0, 
-                                   PosY:   8.0,
-                                   Depth:  0.5,
-                                   Angle:  0.0,
-                                   Width:  3.0,
-                                   Height: 3.0}
-      data := sucre.RectData{basic, tex1}
-
-      context.AddRect(data)
-
+      
+      basic := sucre.BasicRectData{
+         Width:  3.0,
+         Height: 3.0,
+         Angle:  0.0,
+         PosX:   3.0,
+         PosY:   3.0,
+         Depth:  0.5,
+      }      
+      rect := sucre.RectData{basic, tex7}
+      
+      // Square of size 3 at (3,3) using 7.png
+      context.AddRect(rect)
+      
+      rect.PosX    = -3.0
+      rect.PosY    = -3.0
+      rect.Height  =  2.0
+      rect.Angle   = float32(math.Pi / 6.0)
+      rect.Texture = tex5
+      
+      // Rotated 3x2 rectangle at (-3, -3) using 5.png
+      context.AddRect(rect)
+      
+      rect.Width   = 1.0
+      rect.Height  = 1.0
+      rect.Depth   = 0.6 
+      rect.Texture = tex7
+      
+      // Rotated square of size 1 at (-3, -3), behind the
+      //  3x2 rectangle and using 7.png
+      context.AddRect(rect)
+      
       context.Draw()
-
+      
       window.SwapBuffers()
       glfw.PollEvents()
    }
