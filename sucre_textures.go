@@ -9,7 +9,6 @@ import "image/draw"
 import "path/filepath"
 import "regexp"
 import _ "image/png"
-import "fmt"
 import "math"
 
 // Load all textures of a directory into the context's dictionnary
@@ -17,9 +16,11 @@ func (this *Context) loadTextures(textureLocation string) {
 
    isImgFile, _ := regexp.Compile("\\.png$")
    
-   this.texturesByName = make(map[string]uint32, 10)
+   this.opaqueTexs = make(map[string]uint32, 32)
+   this.transTexs  = make(map[string]uint32, 32)
    
-   rgbas := make([]*image.RGBA, 0, 32)
+   opaques := make([]*image.RGBA, 0, 32)
+   transp  := make([]*image.RGBA, 0, 32)
    
    visit := func(path string, meta os.FileInfo, err error) error {
       if err == nil && isImgFile.MatchString(path) {
@@ -29,19 +30,28 @@ func (this *Context) loadTextures(textureLocation string) {
             return nil
          }
          
-         this.texturesByName[filepath.Base(path)] = uint32(len(rgbas))
-         rgbas = append(rgbas, rgba)
+         if rgba.Opaque() {
+            this.opaqueTexs[filepath.Base(path)] = uint32(len(opaques))
+            opaques = append(opaques, rgba)
+         } else {            
+            this.transTexs[filepath.Base(path)]  = uint32(len(transp))
+            transp  = append(transp,  rgba)
+         }
       }
       return nil
    }
 
    filepath.Walk(textureLocation, visit)
    
+   this.theOpaqueTex = upload(opaques, gl.RGB8)
+   this.theTransTex  = upload(transp,  gl.RGBA8)
+}
+
+func upload(rgbas []*image.RGBA, internalFormat uint32) uint32 {
    // We assume every texture is of the same size, and a square
    texCount := int32(len(rgbas))
    if texCount == 0 {
-      fmt.Printf("No textures found at %s" + "\n", textureLocation)
-      return
+      return 0
    }
    size := int32(rgbas[0].Rect.Size().X)
    
@@ -51,14 +61,7 @@ func (this *Context) loadTextures(textureLocation string) {
    var theTexture uint32
    gl.GenTextures(1, &theTexture)
    gl.BindTexture(gl.TEXTURE_2D_ARRAY, theTexture)
-   this.theTexture = theTexture
-   
-   // Add alpha byte only if transparency is enabled
-   internalFormat := uint32(gl.RGB8)
-   if this.transparencyEnabled {
-      internalFormat = gl.RGBA8
-   }
-   
+      
    gl.TexStorage3D(gl.TEXTURE_2D_ARRAY, mmCount, internalFormat, size, size, texCount);
       
    for i, rgba := range rgbas {
@@ -80,6 +83,8 @@ func (this *Context) loadTextures(textureLocation string) {
    gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR_MIPMAP_LINEAR);
    gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
    gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+   
+   return theTexture
 }
 
 // Get an RGBA image from disk

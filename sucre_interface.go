@@ -4,7 +4,6 @@ package sucre
 
 import "math"
 import "github.com/go-gl/gl/v3.2-core/gl"
-import "sort"
 
 // ----------------------------------------------------------------
 // ------------------------ Data Structures -----------------------
@@ -14,12 +13,26 @@ type Color struct {
    R, G, B float32
 }
 
-type SquareData struct {
+type BasicSquareData struct {   
    PosX, PosY float32
    Size       float32
    Angle      float32       // in radians
    Depth      float32       // 0.0 <= Depth < 1.0
+}
+
+type innerSquareData struct {
+   BasicSquareData
    TextureId  uint32
+}
+
+type SquareData struct {
+   BasicSquareData
+   Texture
+}
+
+type Texture struct {
+   Id          uint32
+   Transparent bool
 }
 
 // ----------------------------------------------------------------
@@ -29,25 +42,27 @@ type SquareData struct {
 type Context struct {
    
    // Textures
-   texturesByName map[string]uint32
-   transparencyEnabled bool
+   opaqueTexs map[string]uint32
+   transTexs  map[string]uint32
    
    // Instance stuff
-   squares []SquareData
+   transSquares  []innerSquareData
+   opaqueSquares []innerSquareData
    
    // Buffers
-   theTexture     uint32
+   theOpaqueTex   uint32
+   theTransTex    uint32
    instanceBuffer uint32
    
    // Shader stuff
    zoomUni, rotUni, cameraUni int32
    theProgram, theVAO uint32
    
+   bg Color   
 }
 
 // Initializes OpenGL and loads the textures from disk
-func (this *Context) Initialize(textureLocation string, transparencyEnabled bool) {   
-   this.transparencyEnabled = transparencyEnabled
+func (this *Context) Initialize(textureLocation string) {
    
    // Create the shader program
    this.theProgram = createProgram()
@@ -58,7 +73,8 @@ func (this *Context) Initialize(textureLocation string, transparencyEnabled bool
    // Load the textures from disk
    this.loadTextures(textureLocation)
    
-   this.squares = make([]SquareData, 0, 32)
+   this.transSquares  = make([]innerSquareData, 0, 32)
+   this.opaqueSquares = make([]innerSquareData, 0, 32)
    this.SetClearColor(Color{0, 0, 0})
    
    // Initialize Camera
@@ -114,14 +130,23 @@ func (this *Context) SetCameraAngle(rad float64) {
 // ----------------------------------------------------------------
 
 // Gets the ID of a texture
-func (this *Context) GetTextureId(name string) (uint32, bool){
-   textureId, ok := this.texturesByName[name]
-   return textureId, ok
+func (this *Context) GetTextureId(name string) (Texture, bool){
+   textureId, ok := this.opaqueTexs[name]   
+   if ok {
+      return Texture{textureId, false}, ok
+   }
+   textureId, ok = this.transTexs[name]
+   return Texture{textureId, true}, ok
 }
 
 // Adds a square to be drawn in the next Draw call
-func (this *Context) AddSquare(data SquareData) {   
-   this.squares = append(this.squares, data)
+func (this *Context) AddSquare(data SquareData) {
+   inner := innerSquareData{data.BasicSquareData, data.Id}
+   if data.Transparent {
+      this.transSquares  = append(this.transSquares, inner)
+   } else {
+      this.opaqueSquares = append(this.opaqueSquares, inner)
+   }  
 }
 
 // ----------------------------------------------------------------
@@ -131,42 +156,30 @@ func (this *Context) AddSquare(data SquareData) {
 
 // Sets the color used to clear the screen (default is black)
 func (this *Context) SetClearColor(bg Color) {
-   gl.ClearColor(bg.R, bg.G, bg.B, 1.0)
+   this.bg = bg
 }
 
 // Clears the scene of all squares
 func (this *Context) ClearScene() {
-   if this.transparencyEnabled {
-      gl.Clear(gl.COLOR_BUFFER_BIT)
-   } else {      
-      gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-   }
+   gl.ClearColor(this.bg.R, this.bg.G, this.bg.B, 1.0)
+   gl.ClearDepth(1.0)
+   gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
 
 // Draws the squares
 func (this *Context) Draw() {
-   count := int32(len(this.squares))
-   if count == 0 {
-      return
-   }
-   
-   if this.transparencyEnabled {
-      sort.Sort(deeperFirst(this.squares))
-   }
-   
+
+   // Bind what's needed to draw
    gl.UseProgram(this.theProgram) 
    gl.BindVertexArray(this.theVAO) 
-   gl.BindTexture(gl.TEXTURE_2D_ARRAY, this.theTexture)
-
-   // Upload squares
    gl.BindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer)
-   gl.BufferData(gl.ARRAY_BUFFER, int(count * 6 * 4), gl.Ptr(this.squares), gl.DYNAMIC_DRAW)
    
-   // Draw
-   this.enableGlCaps()
-   gl.DrawArraysInstanced(gl.TRIANGLES, 0, 6, count)
-   this.disableGlCaps()
-      
-   // Clear the square buffer
-   this.squares = this.squares[:0]
+   // Start with the opaques  
+   drawSquares(this.opaqueSquares, this.theOpaqueTex, false)
+   // Then draw the transparents
+   drawSquares(this.transSquares, this.theTransTex, true)
+   
+   // Clear the squares
+   this.opaqueSquares = this.opaqueSquares[:0]
+   this.transSquares = this.transSquares[:0]
 }

@@ -1,12 +1,9 @@
 package sucre
 
 import "github.com/go-gl/gl/v3.2-core/gl"
+import "sort"
 
-// ----------------------------------------------------------------
-// --------------------- Transparency Sorting ---------------------
-// ----------------------------------------------------------------
-
-type deeperFirst []SquareData
+type deeperFirst []innerSquareData
 
 func (a deeperFirst) Len() int {
    return len(a)
@@ -20,26 +17,38 @@ func (a deeperFirst) Less(i, j int) bool {
    return a[i].Depth > a[j].Depth
 }
 
-// ----------------------------------------------------------------
-// -------------------- OpenGL State Modifiers --------------------
-// ----------------------------------------------------------------
+func drawSquares(squares []innerSquareData, texId uint32, transparent bool) {
+   count := int32(len(squares))
+   if count == 0 {
+      return
+   }
+   
+   if transparent {
+      sort.Sort(deeperFirst(squares))
+   }
+   
+   gl.BindTexture(gl.TEXTURE_2D_ARRAY, texId)
 
-func (this *Context) bindBuffersForDrawing() {
-   gl.UseProgram(this.theProgram) 
-   gl.BindVertexArray(this.theVAO) 
-   gl.BindTexture(gl.TEXTURE_2D_ARRAY, this.theTexture)
+   // Upload squares
+   gl.BufferData(gl.ARRAY_BUFFER, int(count * 6 * 4), gl.Ptr(squares), gl.DYNAMIC_DRAW)
+   
+   // Draw
+   enableGlCaps(transparent)
+   gl.DrawArraysInstanced(gl.TRIANGLES, 0, 6, count)
+   disableGlCaps()
 }
 
-func (this *Context) enableGlCaps() {    
+func enableGlCaps(transparent bool) {    
    // Depth Test
-   if !this.transparencyEnabled {
-      gl.Enable(gl.DEPTH_TEST)
+   gl.Enable(gl.DEPTH_TEST)
+   if transparent {
+      gl.DepthFunc(gl.LEQUAL)
+   } else {
       gl.DepthFunc(gl.LESS)
-      gl.ClearDepth(1.0)
    }
    
    // Blending
-   if this.transparencyEnabled {
+   if transparent {
       gl.Enable(gl.BLEND)
       gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
    }
@@ -50,7 +59,7 @@ func (this *Context) enableGlCaps() {
    gl.CullFace(gl.BACK)
 }
 
-func (this *Context) disableGlCaps() {
+func disableGlCaps() {
    gl.Disable(gl.DEPTH_TEST)
    gl.Disable(gl.BLEND)
    gl.Disable(gl.CULL_FACE)
