@@ -3,25 +3,25 @@ package sucre
 import "github.com/go-gl/gl/v3.2-core/gl"
 import "sort"
 
-type deeperFirst []innerSquareData
+type deeperFirst []innerRectData
 func (a deeperFirst) Len() int {return len(a)}
 func (a deeperFirst) Swap(i, j int) {a[i], a[j] = a[j], a[i]}
 func (a deeperFirst) Less(i, j int) bool {return a[i].Depth > a[j].Depth}
 
-func drawSquares(squares []innerSquareData, texId uint32, transparent bool) {
-   count := int32(len(squares))
+func drawRects(Rects []innerRectData, texId uint32, transparent bool) {
+   count := int32(len(Rects))
    if count == 0 {
       return
    }
    
    if transparent {
-      sort.Sort(deeperFirst(squares))
+      sort.Sort(deeperFirst(Rects))
    }
    
    gl.BindTexture(gl.TEXTURE_2D_ARRAY, texId)
 
-   // Upload squares
-   gl.BufferData(gl.ARRAY_BUFFER, int(count * 6 * 4), gl.Ptr(squares), gl.DYNAMIC_DRAW)
+   // Upload Rects
+   gl.BufferData(gl.ARRAY_BUFFER, int(count * 7 * 4), gl.Ptr(Rects), gl.DYNAMIC_DRAW)
    
    // Draw
    enableGlCaps(transparent)

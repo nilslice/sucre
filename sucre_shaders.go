@@ -21,27 +21,27 @@ func (this *Context) initVAO() {
    
    worldPos := uint32(gl.GetAttribLocation(this.theProgram, gl.Str("world_pos" + "\x00")))
    gl.EnableVertexAttribArray(worldPos)
-   gl.VertexAttribPointer(worldPos, 2, gl.FLOAT, false, 6 * 4, gl.PtrOffset(0))
+   gl.VertexAttribPointer(worldPos, 2, gl.FLOAT, false, 7 * 4, gl.PtrOffset(0))
    gl.VertexBindingDivisor(worldPos, 1)
    
    scalePos := uint32(gl.GetAttribLocation(this.theProgram, gl.Str("scale" + "\x00")))
    gl.EnableVertexAttribArray(scalePos)
-   gl.VertexAttribPointer(scalePos, 1, gl.FLOAT, false, 6 * 4, gl.PtrOffset(2 * 4))
+   gl.VertexAttribPointer(scalePos, 2, gl.FLOAT, false, 7 * 4, gl.PtrOffset(2 * 4))
    gl.VertexBindingDivisor(scalePos, 1)
    
    anglePos := uint32(gl.GetAttribLocation(this.theProgram, gl.Str("angle" + "\x00")))
    gl.EnableVertexAttribArray(anglePos)
-   gl.VertexAttribPointer(anglePos, 1, gl.FLOAT, false, 6 * 4, gl.PtrOffset(3 * 4))
+   gl.VertexAttribPointer(anglePos, 1, gl.FLOAT, false, 7 * 4, gl.PtrOffset(4 * 4))
    gl.VertexBindingDivisor(anglePos, 1)
    
    depthPos := uint32(gl.GetAttribLocation(this.theProgram, gl.Str("depth" + "\x00")))
    gl.EnableVertexAttribArray(depthPos)
-   gl.VertexAttribPointer(depthPos, 1, gl.FLOAT, false, 6 * 4, gl.PtrOffset(4 * 4))
+   gl.VertexAttribPointer(depthPos, 1, gl.FLOAT, false, 7 * 4, gl.PtrOffset(5 * 4))
    gl.VertexBindingDivisor(depthPos, 1)
    
    texIdPos := uint32(gl.GetAttribLocation(this.theProgram, gl.Str("vertex_textureId" + "\x00")))
    gl.EnableVertexAttribArray(texIdPos)
-   gl.VertexAttribIPointer(texIdPos, 1, gl.UNSIGNED_INT, 6 * 4, gl.PtrOffset(5 * 4))
+   gl.VertexAttribIPointer(texIdPos, 1, gl.UNSIGNED_INT, 7 * 4, gl.PtrOffset(6 * 4))
    gl.VertexBindingDivisor(texIdPos, 1)   
    
    // Square Mesh
@@ -107,7 +107,7 @@ func createProgram() uint32 {
 
                  in       float depth;
                  in       vec2  world_pos;
-                 in       float scale;
+                 in       vec2  scale;
                  in       float angle;
                  in       vec2  mesh_pos;
                  in       vec2  vertex_texture_coords;
@@ -122,7 +122,8 @@ func createProgram() uint32 {
                      fragment_textureId = vertex_textureId;
                                           
                      // Scale
-                     vec2 temp = mesh_pos * scale;
+                     vec2 temp = vec2(mesh_pos.x * scale.x,
+                                      mesh_pos.y * scale.y);
                      
                      // Rotate
                      float sint = sin(angle);

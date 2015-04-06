@@ -13,20 +13,20 @@ type Color struct {
    R, G, B float32
 }
 
-type BasicSquareData struct {   
-   PosX, PosY float32
-   Size       float32
-   Angle      float32       // in radians
-   Depth      float32       // 0.0 <= Depth < 1.0
+type BasicRectData struct {   
+   PosX, PosY    float32
+   Width, Height float32
+   Angle         float32       // in radians
+   Depth         float32       // 0.0 <= Depth < 1.0
 }
 
-type innerSquareData struct {
-   BasicSquareData
+type innerRectData struct {
+   BasicRectData
    TextureId  uint32
 }
 
-type SquareData struct {
-   BasicSquareData
+type RectData struct {
+   BasicRectData
    Texture
 }
 
@@ -46,8 +46,8 @@ type Context struct {
    transTexs  map[string]uint32
    
    // Instance stuff
-   transSquares  []innerSquareData
-   opaqueSquares []innerSquareData
+   transRects  []innerRectData
+   opaqueRects []innerRectData
    
    // Buffers
    theOpaqueTex   uint32
@@ -67,14 +67,14 @@ func (this *Context) Initialize(textureLocation string) {
    // Create the shader program
    this.theProgram = createProgram()
    
-   // Upload the square mesh and set up the program inputs
+   // Upload the Rect mesh and set up the program inputs
    this.initVAO()
    
    // Load the textures from disk
    this.loadTextures(textureLocation)
    
-   this.transSquares  = make([]innerSquareData, 0, 32)
-   this.opaqueSquares = make([]innerSquareData, 0, 32)
+   this.transRects  = make([]innerRectData, 0, 32)
+   this.opaqueRects = make([]innerRectData, 0, 32)
    this.SetClearColor(Color{0, 0, 0})
    
    // Initialize Camera
@@ -126,7 +126,7 @@ func (this *Context) SetCameraAngle(rad float64) {
 }
 
 // ----------------------------------------------------------------
-// ------------------------- Square Setup -------------------------
+// ------------------------- Rect Setup -------------------------
 // ----------------------------------------------------------------
 
 // Gets the ID of a texture
@@ -139,13 +139,13 @@ func (this *Context) GetTextureId(name string) (Texture, bool){
    return Texture{textureId, true}, ok
 }
 
-// Adds a square to be drawn in the next Draw call
-func (this *Context) AddSquare(data SquareData) {
-   inner := innerSquareData{data.BasicSquareData, data.Id}
+// Adds a Rect to be drawn in the next Draw call
+func (this *Context) AddRect(data RectData) {
+   inner := innerRectData{data.BasicRectData, data.Id}
    if data.Transparent {
-      this.transSquares  = append(this.transSquares, inner)
+      this.transRects  = append(this.transRects, inner)
    } else {
-      this.opaqueSquares = append(this.opaqueSquares, inner)
+      this.opaqueRects = append(this.opaqueRects, inner)
    }  
 }
 
@@ -159,14 +159,14 @@ func (this *Context) SetClearColor(bg Color) {
    this.bg = bg
 }
 
-// Clears the scene of all squares
+// Clears the scene of all Rects
 func (this *Context) ClearScene() {
    gl.ClearColor(this.bg.R, this.bg.G, this.bg.B, 1.0)
    gl.ClearDepth(1.0)
    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 }
 
-// Draws the squares
+// Draws the Rects
 func (this *Context) Draw() {
 
    // Bind what's needed to draw
@@ -175,11 +175,11 @@ func (this *Context) Draw() {
    gl.BindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer)
    
    // Start with the opaques  
-   drawSquares(this.opaqueSquares, this.theOpaqueTex, false)
+   drawRects(this.opaqueRects, this.theOpaqueTex, false)
    // Then draw the transparents
-   drawSquares(this.transSquares, this.theTransTex, true)
+   drawRects(this.transRects, this.theTransTex, true)
    
-   // Clear the squares
-   this.opaqueSquares = this.opaqueSquares[:0]
-   this.transSquares = this.transSquares[:0]
+   // Clear the Rects
+   this.opaqueRects = this.opaqueRects[:0]
+   this.transRects = this.transRects[:0]
 }
