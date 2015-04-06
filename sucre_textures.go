@@ -47,11 +47,18 @@ func (this *Context) loadTextures(textureLocation string) {
    
    // We build mipmaps down to 1x1
    var mmCount = int32(math.Log2(float64(size)) + 1);
-      
+   
    var theTexture uint32
    gl.GenTextures(1, &theTexture)
    gl.BindTexture(gl.TEXTURE_2D_ARRAY, theTexture)
-   gl.TexStorage3D(gl.TEXTURE_2D_ARRAY, mmCount, gl.RGBA8, size, size, texCount);
+   
+   // Add alpha byte only if transparency is enabled
+   internalFormat := uint32(gl.RGB8)
+   if this.transparencyEnabled {
+      internalFormat = gl.RGBA8
+   }
+   
+   gl.TexStorage3D(gl.TEXTURE_2D_ARRAY, mmCount, internalFormat, size, size, texCount);
       
    for i, rgba := range rgbas {
       gl.TexSubImage3D(gl.TEXTURE_2D_ARRAY, // target
