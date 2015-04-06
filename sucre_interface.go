@@ -15,16 +15,15 @@ type Color struct {
 
 type SquareData struct {
    PosX, PosY float32
-   Size  float32
-   Angle float32       // in radians
-   Depth float32       // 0.0 <= Depth < 1.0
+   Size       float32
+   Angle      float32       // in radians
+   Depth      float32       // 0.0 <= Depth < 1.0
+   TextureId  uint32
 }
 
 // ----------------------------------------------------------------
 // ------------------------ General Stuff -------------------------
 // ----------------------------------------------------------------
-
-type squareList []SquareData
 
 type Context struct {
    
@@ -32,7 +31,7 @@ type Context struct {
    texturesByName map[string]uint32
    
    // Instance stuff
-   squaresByTexture map[uint32]squareList
+   squares []SquareData
    
    // Shader stuff
    instanceBuffer uint32
@@ -69,7 +68,7 @@ func (this *Context) Initialize(textureLocation string) error {
    
    this.loadTextures(textureLocation)
    
-   this.squaresByTexture = make(map[uint32]squareList, len(this.texturesByName))
+   this.squares = make([]SquareData, 0, 32)
    
    this.SetClearColor(Color{0, 0, 0})
    this.SetCameraPosition(0.0, 0.0)
@@ -129,14 +128,8 @@ func (this *Context) GetTextureId(name string) (uint32, bool){
 }
 
 // Adds a square to be drawn in the next Draw call
-func (this *Context) AddSquare(textureId uint32, data SquareData) {
-   squares, ok := this.squaresByTexture[textureId]
-   if !ok {
-      squares = make([]SquareData, 0, 32)
-      this.squaresByTexture[textureId] = squares
-   }
-   
-   this.squaresByTexture[textureId] = append(squares, data)
+func (this *Context) AddSquare(data SquareData) {   
+   this.squares = append(this.squares, data)
 }
 
 // ----------------------------------------------------------------
@@ -156,21 +149,12 @@ func (this *Context) ClearScene() {
 
 // Draws the squares
 func (this *Context) Draw() {
-   for texture, squares := range this.squaresByTexture {
-      gl.BindTexture(gl.TEXTURE_2D, texture)
-   
-      count := int32(len(squares))
+   count := int32(len(this.squares))
+
+   // Upload squares and draw call
+   gl.BufferData(gl.ARRAY_BUFFER, int(count * 6 * 4), gl.Ptr(this.squares), gl.DYNAMIC_DRAW)
+   gl.DrawArraysInstanced(gl.TRIANGLES, 0, 6, count)
       
-      if count == 0 {
-         delete(this.squaresByTexture, texture)
-         continue
-      }
-      
-      // Upload squares and draw call
-      gl.BufferData(gl.ARRAY_BUFFER, int(count * 5 * 4), gl.Ptr(squares), gl.DYNAMIC_DRAW)
-      gl.DrawArraysInstanced(gl.TRIANGLES, 0, 6, count)
-      
-      // Clear the square buffer
-      this.squaresByTexture[texture] = squares[:0]
-   }
+   // Clear the square buffer
+   this.squares = this.squares[:0]
 }
