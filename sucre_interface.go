@@ -150,17 +150,17 @@ func (this *Context) AddSquare(data SquareData) {
 // --------------------- Transparency Sorting ---------------------
 // ----------------------------------------------------------------
 
-type byDepth []SquareData
+type deeperFirst []SquareData
 
-func (a byDepth) Len() int {
+func (a deeperFirst) Len() int {
    return len(a)
 }
 
-func (a byDepth) Swap(i, j int) {
+func (a deeperFirst) Swap(i, j int) {
    a[i], a[j] = a[j], a[i]
 }
 
-func (a byDepth) Less(i, j int) bool {
+func (a deeperFirst) Less(i, j int) bool {
    return a[i].Depth > a[j].Depth
 }
 
@@ -188,7 +188,7 @@ func (this *Context) Draw() {
    }
    
    if this.transparencyEnabled {
-      sort.Sort(byDepth(this.squares))
+      sort.Sort(deeperFirst(this.squares))
    }
 
    // Upload squares and draw call
