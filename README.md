@@ -7,6 +7,13 @@ go get github.com/atrika/sucre
 ## Documentation
 https://godoc.org/github.com/atrika/sucre
 
+## Requirements
+The textures used must be squarish, and they must all have the same sizes.
+For example :
+   /home/username/Images/textures
+      texture1.png (512x512)
+      texture2.png (512x512)
+
 ## Usage with glfw
 
 ```go
