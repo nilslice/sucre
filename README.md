@@ -9,7 +9,7 @@ https://godoc.org/github.com/atrika/sucre
 
 ## Requirements
 The textures used must be squares, and they must all have the same sizes.
-For example :
+For example:
 ```
    /home/username/Images/textures
       texture1.png (512x512)
@@ -41,9 +41,9 @@ func main() {
    defer glfw.Terminate()
    
    
-	glfw.WindowHint(glfw.ContextVersionMajor, 3)
-	glfw.WindowHint(glfw.ContextVersionMinor, 2)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+   glfw.WindowHint(glfw.ContextVersionMajor, 3)
+   glfw.WindowHint(glfw.ContextVersionMinor, 2)
+   glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
    
    window, err := glfw.CreateWindow(800, 800, "Testing", nil, nil)
    if err != nil {
