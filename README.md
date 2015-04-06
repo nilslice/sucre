@@ -64,14 +64,15 @@ func main() {
    for !window.ShouldClose() {
       context.ClearScene()
 
-      basic := sucre.BasicSquareData{PosX:  8.0, 
-                                     PosY:  8.0,
-                                     Depth: 0.5,
-                                     Angle: 0.0,
-                                     Size:  3.0}
-      data := sucre.SquareData{basic, tex1}
+      basic := sucre.BasicRectData{PosX:   8.0, 
+                                   PosY:   8.0,
+                                   Depth:  0.5,
+                                   Angle:  0.0,
+                                   Width:  3.0,
+                                   Height: 3.0}
+      data := sucre.RectData{basic, tex1}
 
-      context.AddSquare(data)
+      context.AddRect(data)
 
       context.Draw()
 
