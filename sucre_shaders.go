@@ -73,18 +73,18 @@ func uploadSquareMesh() uint32 {
       // X  Y  U  V
       
       // TOP LEFT
-      -1.0,  1.0, 0.0, 0.0,
+      -0.5,  0.5, 0.0, 0.0,
       // TOP RIGHT
-       1.0,  1.0, 1.0, 0.0,
+       0.5,  0.5, 1.0, 0.0,
       // BOTTOM LEFT
-      -1.0, -1.0, 0.0, 1.0,
+      -0.5, -0.5, 0.0, 1.0,
       
       // BOTTOM LEFT
-      -1.0, -1.0, 0.0, 1.0,
+      -0.5, -0.5, 0.0, 1.0,
       // TOP RIGHT
-       1.0,  1.0, 1.0, 0.0,
+       0.5,  0.5, 1.0, 0.0,
       // BOTTOM RIGHT
-       1.0, -1.0, 1.0, 1.0}
+       0.5, -0.5, 1.0, 1.0}
    
    var theVBO uint32
    gl.GenBuffers(1, &theVBO)

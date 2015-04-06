@@ -51,6 +51,7 @@ func (this *Context) loadTextures(textureLocation string) {
    var theTexture uint32
    gl.GenTextures(1, &theTexture)
    gl.BindTexture(gl.TEXTURE_2D_ARRAY, theTexture)
+   this.theTexture = theTexture
    
    // Add alpha byte only if transparency is enabled
    internalFormat := uint32(gl.RGB8)

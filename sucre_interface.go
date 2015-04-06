@@ -35,39 +35,19 @@ type Context struct {
    // Instance stuff
    squares []SquareData
    
-   // Shader stuff
+   // Buffers
+   theTexture     uint32
    instanceBuffer uint32
+   
+   // Shader stuff
    zoomUni, rotUni, cameraUni int32
    theProgram, theVAO uint32
+   
 }
 
 // Initializes OpenGL and loads the textures from disk
-func (this *Context) Initialize(textureLocation string, transparencyEnabled bool) error {
-   if err := gl.Init(); err != nil {
-      return err
-   }
-   
+func (this *Context) Initialize(textureLocation string, transparencyEnabled bool) {   
    this.transparencyEnabled = transparencyEnabled
-   
-   // Depth Test
-   gl.Enable(gl.DEPTH_TEST)
-   if transparencyEnabled {   
-      gl.DepthFunc(gl.LEQUAL)
-   } else {       
-      gl.DepthFunc(gl.LESS)
-   }
-   gl.ClearDepth(1.0)
-   
-   // Blending
-   if transparencyEnabled {
-      gl.Enable(gl.BLEND)
-      gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-   }
-   
-   // Backface Culling
-   gl.Enable(gl.CULL_FACE)
-   gl.FrontFace(gl.CW)
-   gl.CullFace(gl.BACK)
    
    // Create the shader program
    this.theProgram = createProgram()
@@ -75,21 +55,16 @@ func (this *Context) Initialize(textureLocation string, transparencyEnabled bool
    // Upload the square mesh and set up the program inputs
    this.initVAO()
    
-   // Use the VAO and Program
-   gl.BindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer)
-   gl.UseProgram(this.theProgram)
-   gl.BindVertexArray(this.theVAO)   
-   
+   // Load the textures from disk
    this.loadTextures(textureLocation)
    
    this.squares = make([]SquareData, 0, 32)
-   
    this.SetClearColor(Color{0, 0, 0})
+   
+   // Initialize Camera
    this.SetCameraPosition(0.0, 0.0)
    this.SetCameraSize(1.0, 1.0)
    this.SetCameraAngle(0.0)
-   
-   return nil
 }
 
 // ----------------------------------------------------------------
@@ -97,14 +72,15 @@ func (this *Context) Initialize(textureLocation string, transparencyEnabled bool
 // ----------------------------------------------------------------
 
 // Sets the position of the camera (default is [0;0])
-func (this *Context) SetCameraPosition(posX, posY float32) {   
+func (this *Context) SetCameraPosition(posX, posY float32) { 
+   gl.UseProgram(this.theProgram)    
    gl.Uniform2f(this.cameraUni, posX, posY)
 }
 
 // Sets the size of the camera (default 1.0 for w and h)
 func (this *Context) SetCameraSize(width, height float32) {   
-   xZoom := 1.0 / width
-   yZoom := 1.0 / height  
+   xZoom := 2.0 / width
+   yZoom := 2.0 / height  
    
    zoom := [...]float32{
       xZoom,   0.0, 0.0, 0.0,
@@ -112,6 +88,7 @@ func (this *Context) SetCameraSize(width, height float32) {
         0.0,   0.0, 1.0, 0.0,
         0.0,   0.0, 0.0, 1.0 }
          
+   gl.UseProgram(this.theProgram)  
    gl.UniformMatrix4fv(this.zoomUni, 1, true, &zoom[0])  
 }
 
@@ -127,8 +104,9 @@ func (this *Context) SetCameraAngle(rad float64) {
       sinT,  cosT, 0.0, 0.0,
        0.0,   0.0, 1.0, 0.0,
        0.0,   0.0, 0.0, 1.0 }
-         
-   gl.UniformMatrix4fv(this.rotUni, 1, true, &rot[0])  
+   
+   gl.UseProgram(this.theProgram)  
+   gl.UniformMatrix4fv(this.rotUni, 1, true, &rot[0])
 }
 
 // ----------------------------------------------------------------
@@ -147,25 +125,6 @@ func (this *Context) AddSquare(data SquareData) {
 }
 
 // ----------------------------------------------------------------
-// --------------------- Transparency Sorting ---------------------
-// ----------------------------------------------------------------
-
-type deeperFirst []SquareData
-
-func (a deeperFirst) Len() int {
-   return len(a)
-}
-
-func (a deeperFirst) Swap(i, j int) {
-   a[i], a[j] = a[j], a[i]
-}
-
-func (a deeperFirst) Less(i, j int) bool {
-   return a[i].Depth > a[j].Depth
-}
-
-
-// ----------------------------------------------------------------
 // ------------------------- Scene Control ------------------------
 // ----------------------------------------------------------------
 
@@ -177,7 +136,11 @@ func (this *Context) SetClearColor(bg Color) {
 
 // Clears the scene of all squares
 func (this *Context) ClearScene() {
-   gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+   if this.transparencyEnabled {
+      gl.Clear(gl.COLOR_BUFFER_BIT)
+   } else {      
+      gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+   }
 }
 
 // Draws the squares
@@ -190,10 +153,19 @@ func (this *Context) Draw() {
    if this.transparencyEnabled {
       sort.Sort(deeperFirst(this.squares))
    }
+   
+   gl.UseProgram(this.theProgram) 
+   gl.BindVertexArray(this.theVAO) 
+   gl.BindTexture(gl.TEXTURE_2D_ARRAY, this.theTexture)
 
-   // Upload squares and draw call
+   // Upload squares
+   gl.BindBuffer(gl.ARRAY_BUFFER, this.instanceBuffer)
    gl.BufferData(gl.ARRAY_BUFFER, int(count * 6 * 4), gl.Ptr(this.squares), gl.DYNAMIC_DRAW)
+   
+   // Draw
+   this.enableGlCaps()
    gl.DrawArraysInstanced(gl.TRIANGLES, 0, 6, count)
+   this.disableGlCaps()
       
    // Clear the square buffer
    this.squares = this.squares[:0]
