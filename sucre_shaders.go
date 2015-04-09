@@ -136,7 +136,7 @@ func createProgram() uint32 {
                      temp += world_pos;
                      temp -= camera_pos;
                      
-                     gl_Position = rot_mat * zoom_mat * vec4(temp, depth, 1.0);
+                     gl_Position = zoom_mat * rot_mat * vec4(temp, depth, 1.0);
                  }`
 
    fragSrc := `#version 150
